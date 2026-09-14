@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="theme-color" content="#4055b8"/>
+<title>Simulador de Reticulação de Beads de Alginato</title>
+<style>
+:root{
+  --ink:#172033;--muted:#687386;--line:#e5e9f2;--bg:#f4f6fa;--surface:#fff;
+  --violet:#6254d9;--teal:#0f9b79;--cyan:#22a9c1;--rose:#d85882;
+  --shadow:0 8px 24px rgba(36,45,84,.07);--radius:20px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+button,input{font:inherit} button{border:0}
+.shell{max-width:1420px;margin:0 auto;padding:20px 20px 42px}
+
+/* Header */
+.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#3246a5 0%,#5267ca 55%,#388fa7 100%);color:#fff;border-radius:28px;padding:27px 30px;box-shadow:0 14px 34px rgba(41,54,119,.14);margin-bottom:16px}
+.hero:after{content:"";position:absolute;width:250px;height:250px;border-radius:50%;right:-80px;top:-115px;background:rgba(255,255,255,.07);pointer-events:none}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:.10em;text-transform:uppercase;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.19);padding:7px 10px;border-radius:999px;margin-bottom:11px}
+.eyebrow i{width:7px;height:7px;border-radius:50%;background:#b1ffec}
+.hero h1{position:relative;z-index:1;margin:0 0 9px;max-width:1050px;font-size:clamp(28px,3.8vw,43px);line-height:1.12;letter-spacing:-.028em;text-wrap:balance;overflow-wrap:normal}
+.hero p{position:relative;z-index:1;margin:0;max-width:1000px;color:rgba(255,255,255,.91);font-size:15px;line-height:1.55}
+
+/* Layout */
+.layout{display:grid;grid-template-columns:350px minmax(0,1fr);gap:16px;align-items:start}
+.card,.panel{background:rgba(255,255,255,.97);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.sidebar{position:sticky;top:12px;padding:16px;max-height:calc(100vh - 24px);overflow:auto}
+.sidebar::-webkit-scrollbar{width:7px}.sidebar::-webkit-scrollbar-thumb{background:#dfe3ed;border-radius:999px}
+.main{display:grid;gap:13px;min-width:0}
+.startPanel{padding:12px 13px;border:1px solid #e5e4fb;background:linear-gradient(135deg,#f7f5ff,#f1fafc);border-radius:15px;margin-bottom:14px}
+.startPanel strong{font-size:15px}.startPanel p{font-size:12.5px;color:var(--muted);margin:5px 0 0;line-height:1.5}
+.sectionTitle{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 9px}
+.sectionTitle h2{margin:0;font-size:16px}.sectionTitle small{font-size:11px;color:var(--muted)}
+
+/* Presets */
+.presets{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.preset{cursor:pointer;text-align:left;border:1px solid var(--line);background:#fff;border-radius:13px;padding:10px;transition:.18s;color:#344054;min-height:104px}
+.preset:hover{transform:translateY(-1px);border-color:#cfc8ff;box-shadow:0 7px 18px rgba(103,87,232,.09)}
+.preset.active{border-color:#8d83ef;background:#f8f7ff;box-shadow:0 0 0 2px rgba(98,84,217,.08)}
+.presetTop{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.preset b{display:inline-flex;width:27px;height:27px;align-items:center;justify-content:center;border-radius:9px;background:#eef0ff;color:#5145cf;font-size:12px;flex:0 0 auto}
+.presetSwatch{display:block;width:34px;height:34px;border-radius:50%;border:1px solid #d9deea;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 2px 7px rgba(40,48,83,.08);background:radial-gradient(circle at center,#fff1a8 0%,#9ae4bd 25%,#55c6d9 60%,#40329b 100%);flex:0 0 auto}
+.preset span{display:block;font-size:12.5px;font-weight:780;line-height:1.2}.preset small{display:block;font-size:10.5px;color:#7b8496;line-height:1.35;margin-top:4px}
+.resetLink{display:block;width:100%;margin-top:8px;padding:7px 4px;background:transparent;color:#667085;text-align:center;font-size:11.5px;cursor:pointer;border-radius:8px}.resetLink:hover{background:#f5f6fa;color:#4d5667}
+
+/* Controls */
+.group{border-top:1px solid var(--line);padding-top:13px;margin-top:13px}
+.groupLabel{display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:820;letter-spacing:.07em;text-transform:uppercase;color:#6b7486;margin-bottom:3px}
+.groupLabel i{width:8px;height:8px;border-radius:3px;background:linear-gradient(135deg,var(--violet),var(--cyan))}
+.control{padding:10px 0 8px}.controlHead{display:flex;justify-content:space-between;gap:10px;align-items:center}.controlLabel{font-size:13.5px;font-weight:740;color:#30394c}.valuePill{font-size:11.5px;font-weight:800;color:#38427c;background:#eef1f8;border:1px solid #dbe1ee;padding:4px 8px;border-radius:8px;min-width:72px;text-align:center;font-variant-numeric:tabular-nums}
+.controlHelp{font-size:11px;color:#758094;line-height:1.4;margin-top:5px}
+input[type=range]{width:100%;appearance:none;height:7px;border-radius:999px;margin:9px 0 0;background:linear-gradient(90deg,#6254d9 0%,#21afbd 100%);outline:none}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:18px;height:18px;border-radius:50%;background:#fff;border:4px solid #6254d9;box-shadow:0 2px 8px rgba(56,48,146,.25);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:11px;height:11px;border-radius:50%;background:#fff;border:4px solid #6254d9;cursor:pointer}
+.scope{margin-top:13px;padding:10px 11px;border-radius:12px;background:#f7f9fc;border:1px solid #e6eaf1;font-size:10.8px;line-height:1.45;color:#667085}.scope b{color:#424b5f}
+
+/* Insight and metrics */
+.insight{padding:14px 16px;background:linear-gradient(115deg,#faf8ff,#f1fbfc);border-color:#e1e2f5}
+.insightTitle{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:820;margin-bottom:5px}.insightIcon{width:27px;height:27px;border-radius:9px;background:linear-gradient(135deg,#6757e8,#25b6c7);color:#fff;display:flex;align-items:center;justify-content:center}
+.insightText{font-size:13.5px;color:#556074;line-height:1.55}.insightText strong{color:#313b50}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.metric{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;min-height:90px;box-shadow:0 5px 16px rgba(34,42,73,.04)}
+.metricTop{display:flex;align-items:center;gap:6px;font-size:11.5px;color:#6e778a;font-weight:700}.metricIcon{width:24px;height:24px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;background:#f0efff;color:#5a4bd6}.metric b{display:block;margin-top:7px;font-size:23px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}.metric small{display:block;margin-top:3px;color:#8790a1;font-size:10.5px;line-height:1.3}
+
+/* Charts */
+.visualGrid{display:grid;grid-template-columns:1fr 1fr;gap:13px;align-items:stretch}
+.panel{padding:15px;min-width:0}.visualGrid>.panel{display:flex;flex-direction:column;height:100%}
+.panelHead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}.panel h3{margin:0;font-size:17px;line-height:1.25;letter-spacing:-.01em}.panel p{margin:4px 0 0;color:var(--muted);font-size:12px;line-height:1.45}.badge{font-size:9.5px;font-weight:800;padding:5px 8px;border-radius:999px;background:#eef1fb;color:#4354a1;white-space:nowrap}
+.canvasWrap{position:relative;flex:1;display:flex;align-items:center}canvas{display:block;width:100%;height:auto;border-radius:12px}
+.legendWrap{margin-top:7px}.legend{height:10px;border-radius:999px;background:linear-gradient(90deg,#fff1a8 0%,#9ae4bd 25%,#55c6d9 50%,#587bcf 75%,#40329b 100%);border:1px solid #d9dde7}.legendLabels{display:flex;justify-content:space-between;color:#70798a;font-size:10.5px;margin-top:4px}
+.statusBar,.profileNote{padding:9px 10px;border-radius:11px;background:#f7f9fc;border:1px solid #e7eaf1;font-size:11.5px;color:#5f697d;line-height:1.45;margin-top:8px}.statusBar strong,.profileNote strong{color:#344054}
+.chartLegend{display:flex;gap:15px;flex-wrap:wrap;color:#667085;font-size:11.5px;margin-top:7px}.chartLegend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.viewToggle{display:inline-flex;gap:6px;padding:4px;border-radius:999px;background:#f5f7fb;border:1px solid #e2e7f0}.viewToggle button{background:transparent;color:#667085;padding:6px 10px;border-radius:999px;font-size:11px;font-weight:750;cursor:pointer}.viewToggle button.active{background:#fff;color:#364152;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+/* Details */
+.modelDetails{padding:0;overflow:hidden}.modelDetails summary{list-style:none;cursor:pointer;padding:13px 15px;font-size:13px;font-weight:790;color:#3b4559;display:flex;align-items:center;justify-content:space-between}.modelDetails summary::-webkit-details-marker{display:none}.modelDetails summary:after{content:"＋";font-size:17px;font-weight:500;color:#697386}.modelDetails[open] summary:after{content:"−"}.detailsBody{border-top:1px solid var(--line);padding:12px 15px 14px;color:#667085;font-size:11.5px;line-height:1.55}.equations{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}.eq{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10.5px;background:#f5f6fa;border:1px solid #e4e7ef;border-radius:8px;padding:6px 8px;color:#4a5263}
+.footerNote{text-align:center;color:#8a92a2;font-size:10.5px;line-height:1.45;padding:0 10px}
+.pulse{animation:pulse .32s ease}@keyframes pulse{0%{opacity:.72}100%{opacity:1}}
+
+@media(max-width:1080px){.layout{grid-template-columns:315px minmax(0,1fr)}.metrics{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:900px){.shell{padding:12px 12px 30px}.hero{border-radius:22px;padding:22px 20px}.hero h1{font-size:clamp(27px,7vw,38px);max-width:none}.hero p{font-size:14px}.layout{grid-template-columns:1fr}.sidebar{position:static;max-height:none}.visualGrid{grid-template-columns:1fr}.panel{padding:13px}}
+@media(max-width:560px){.shell{padding:9px 9px 24px}.hero{padding:19px 16px;border-radius:19px}.eyebrow{font-size:9.5px}.hero h1{font-size:27px;line-height:1.14;letter-spacing:-.02em}.hero p{font-size:12.5px;line-height:1.5}.sidebar{padding:13px}.presets{grid-template-columns:1fr 1fr}.preset{min-height:108px;padding:9px}.presetSwatch{width:30px;height:30px}.metrics{grid-template-columns:1fr 1fr}.metric{min-height:84px;padding:10px}.metric b{font-size:21px}.panelHead{display:block}.badge{display:inline-block;margin-top:7px}.viewToggle{margin-top:8px}.chartLegend{gap:10px}.profileNote,.statusBar{font-size:11px}}
+@media(max-width:390px){.presets{grid-template-columns:1fr}.metrics{grid-template-columns:1fr}.hero h1{font-size:25px}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="hero">
+    <div class="eyebrow"><i></i> Modelo reduzido de reação–difusão</div>
+    <h1>Simulador de Reticulação de Beads de Alginato</h1>
+    <p>Explore como concentração de Ba²⁺, tamanho da bead, difusividade, cinética e tempo alteram a intensidade e o gradiente radial de reticulação.</p>
+  </header>
+
+  <div class="layout">
+    <aside class="card sidebar">
+      <div class="startPanel">
+        <strong>Monte um cenário</strong>
+        <p>Escolha um padrão ou mova os controles. O mapa e os gráficos são atualizados automaticamente.</p>
+      </div>
+
+      <div class="sectionTitle"><h2>Padrões rápidos</h2><small>1 clique</small></div>
+      <div class="presets">
+        <button class="preset" data-preset="diff" onclick="preset('diff')"><div class="presetTop"><b>↔</b><i class="presetSwatch" data-swatch="diff"></i></div><span>Difusão favorecida</span><small>Quase homogêneo: a difusão acompanha a reação.</small></button>
+        <button class="preset" data-preset="mix" onclick="preset('mix')"><div class="presetTop"><b>≈</b><i class="presetSwatch" data-swatch="mix"></i></div><span>Competição</span><small>Gradiente nítido: difusão e reação competem.</small></button>
+        <button class="preset" data-preset="surf" onclick="preset('surf')"><div class="presetTop"><b>◉</b><i class="presetSwatch" data-swatch="surf"></i></div><span>Frente externa</span><small>Forte contraste: shell destacado e core pouco reticulado.</small></button>
+        <button class="preset" data-preset="exp" onclick="preset('exp')"><div class="presetTop"><b>0,2</b><i class="presetSwatch" data-swatch="exp"></i></div><span>0,20 M · estágio tardio</span><small>Condição intermediária em 0,20 M com gradiente ainda visível.</small></button>
+      </div>
+      <button class="resetLink" onclick="resetModel()">Restaurar valores iniciais</button>
+
+      <div class="group">
+        <div class="groupLabel"><i></i>Condições da bead</div>
+        <div id="experimentalControls"></div>
+      </div>
+      <div class="group">
+        <div class="groupLabel"><i></i>Parâmetros do modelo</div>
+        <div id="modelControls"></div>
+      </div>
+      <div class="scope"><b>Leitura correta:</b> o simulador mostra tendências de um modelo reduzido. D<sub>eff</sub>, k e Q são parâmetros de sensibilidade até calibração específica para Ba²⁺.</div>
+    </aside>
+
+    <main class="main">
+      <section class="insight card">
+        <div class="insightTitle"><span class="insightIcon">✦</span>O que o perfil mostra</div>
+        <div id="regimeText" class="insightText">Calculando cenário…</div>
+      </section>
+
+      <section class="metrics">
+        <div class="metric"><div class="metricTop"><span class="metricIcon">Da</span>Damköhler</div><b id="Da">–</b><small>reação / difusão</small></div>
+        <div class="metric"><div class="metricTop"><span class="metricIcon">Fo</span>Fourier</div><b id="Fo">–</b><small>tempo / escala difusiva</small></div>
+        <div class="metric"><div class="metricTop"><span class="metricIcon">α</span>Reticulação média</div><b id="avg">–</b><small>estado normalizado</small></div>
+        <div class="metric"><div class="metricTop"><span class="metricIcon">Δα</span>Gradiente radial</div><b id="Dmetric">–</b><small>α externa − α centro</small></div>
+      </section>
+
+      <section class="visualGrid">
+        <div class="panel">
+          <div class="panelHead">
+            <div><h3>Arquitetura radial prevista</h3><p id="beadModeText">Visualização contrastada do perfil: claro = menor α dentro da bead atual; escuro = maior α dentro da bead atual.</p></div>
+            <div>
+              <span class="badge" id="beadModeBadge">contraste do perfil</span>
+              <div class="viewToggle" aria-label="Modo de visualização da bead">
+                <button id="contrastBtn" class="active" onclick="setColorMode('contrast')">Contraste</button>
+                <button id="absoluteBtn" onclick="setColorMode('absolute')">α absoluto</button>
+              </div>
+            </div>
+          </div>
+          <div class="canvasWrap"><canvas id="bead" width="700" height="570"></canvas></div>
+          <div class="legendWrap"><div class="legend" id="beadLegend"></div><div class="legendLabels" id="beadLegendLabels"><span>menor na bead</span><span>contraste radial</span><span>maior na bead</span></div></div>
+          <div class="statusBar" id="status">Calculando…</div>
+        </div>
+
+        <div class="panel">
+          <div class="panelHead">
+            <div><h3>Perfil radial</h3><p>Da esquerda para a direita: centro (r/R = 0) → superfície (r/R = 1).</p></div>
+            <span class="badge">centro → superfície</span>
+          </div>
+          <canvas id="profile" width="700" height="520"></canvas>
+          <div class="chartLegend"><span><i style="background:#6254d9"></i>Reticulação α(r)</span><span><i style="background:#0f9b79"></i>Ba²⁺ livre c/C<sub>bath</sub></span></div>
+          <div class="profileNote" id="profileNote">Interpretando o perfil…</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panelHead">
+          <div><h3>Evolução temporal</h3><p>Mostra como centro, média e camada externa se aproximam ao longo do tempo.</p></div>
+          <span class="badge">dinâmica</span>
+        </div>
+        <canvas id="time" width="1200" height="390"></canvas>
+        <div class="chartLegend"><span><i style="background:#6254d9"></i>α médio</span><span><i style="background:#0f9b79"></i>Centro</span><span><i style="background:#d85882"></i>Camada externa</span></div>
+      </section>
+
+      <details class="card modelDetails">
+        <summary>Base do modelo e equações</summary>
+        <div class="detailsBody">
+          O Ba²⁺ é imposto na superfície, difunde radialmente e é consumido conforme a reticulação avança. Para representar o bloqueio progressivo do transporte pela rede formada, D local diminui exponencialmente com α. A formulação continua sendo um modelo reduzido de sensibilidade, inspirado em reação–difusão e não calibrado quantitativamente para Ba²⁺.
+          <div class="equations">
+            <span class="eq">∂c/∂t = ∇·(D_local∇c) − Q·k·c·(1−α)</span>
+            <span class="eq">∂α/∂t = k·c·(1−α)</span><span class="eq">D_local = D₀·exp(−γ·α), γ = 2</span>
+            <span class="eq">Da = k·C_bath·R²/D_eff</span>
+            <span class="eq">Fo = D_eff·t/R²</span>
+            <span class="eq">H = α_centro/α_externa</span>
+          </div>
+        </div>
+      </details>
+      <div class="footerNote">Modelo qualitativo de sensibilidade · o degradê representa α(r,t) calculado, mas os parâmetros ainda requerem calibração experimental para Ba²⁺.</div>
+    </main>
+  </div>
+</div>
+
+<script>
+const defs=[
+  {id:'C',group:'exp',label:'Ba²⁺ no banho',unit:'M',min:.02,max:1.0,value:.20,scale:'log',help:'↑ concentração acelera a reticulação e pode acentuar o contraste externo no estágio transitório.'},
+  {id:'R',group:'exp',label:'Raio da bead',unit:'mm',min:.3,max:2.8,step:.05,value:1.50,scale:'linear',help:'↑ raio aumenta a distância difusiva (R²) e tende a ampliar o gradiente centro–periferia.'},
+  {id:'D',group:'model',label:'Difusividade de referência D₀',unit:'mm²/min',min:.005,max:.10,value:.020,scale:'log',help:'↑ D₀ leva Ba²⁺ ao centro mais rapidamente e tende a reduzir o gradiente.'},
+  {id:'k',group:'model',label:'Constante efetiva de reação',unit:'L/(mol·min)',min:.01,max:.40,value:.100,scale:'log',help:'↑ k acelera a ligação local; se a difusão não acompanha, o shell se destaca.'},
+  {id:'Q',group:'model',label:'Capacidade efetiva de ligação',unit:'M',min:.01,max:.20,value:.050,scale:'log',help:'↑ Q aumenta o consumo local de Ba²⁺ e pode aprofundar a diferença radial.'},
+  {id:'t',group:'model',label:'Tempo observado',unit:'min',min:5,max:1440,value:40,scale:'log',help:'A frente é mais nítida em tempos intermediários; em tempos longos o perfil tende a homogeneizar. 1440 min = 24 h.'}
+];
+const defaults={C:.20,R:1.5,D:.02,k:.10,Q:.05,t:35};
+const HINDRANCE_GAMMA=2.0;
+const presets={
+  diff:{C:.03,R:.80,D:.080,k:.030,Q:.040,t:35},
+  mix:{C:.20,R:1.50,D:.020,k:.10,Q:.05,t:35},
+  surf:{C:.70,R:2.20,D:.008,k:.35,Q:.030,t:15},
+  exp:{C:.20,R:1.50,D:.030,k:.12,Q:.05,t:55}
+};
+let debounceTimer=null,lastResult=null,lastParams=null,activePreset=null;
+let colorMode='contrast';
+
+function fmt(id,v){
+  if(id==='t')return `${Math.round(v)} min`;
+  if(id==='R')return `${v.toFixed(2)} mm`;
+  if(id==='C')return `${v.toFixed(3)} M`;
+  if(id==='Q')return `${v.toFixed(3)} M`;
+  return `${v.toFixed(3)}`;
+}
+function sliderToValue(d,pos){
+  if(d.scale==='log'){
+    const q=Math.max(0,Math.min(1,pos/1000));
+    return Math.exp(Math.log(d.min)+q*(Math.log(d.max)-Math.log(d.min)));
+  }
+  return +pos;
+}
+function valueToSlider(d,value){
+  const v=Math.max(d.min,Math.min(d.max,value));
+  if(d.scale==='log') return 1000*(Math.log(v)-Math.log(d.min))/(Math.log(d.max)-Math.log(d.min));
+  return v;
+}
+function buildControls(){
+  const exp=document.getElementById('experimentalControls'),model=document.getElementById('modelControls');
+  defs.forEach(d=>{
+    const root=d.group==='exp'?exp:model,e=document.createElement('div');e.className='control';
+    const isLog=d.scale==='log',min=isLog?0:d.min,max=isLog?1000:d.max,step=isLog?1:(d.step||.01),start=valueToSlider(d,d.value);
+    e.innerHTML=`<div class="controlHead"><div class="controlLabel">${d.label}</div><div class="valuePill" id="${d.id}v">${fmt(d.id,d.value)}</div></div><input type="range" id="${d.id}" min="${min}" max="${max}" step="${step}" value="${start}" aria-label="${d.label}"><div class="controlHelp">${d.help}</div>`;
+    root.appendChild(e);
+    e.querySelector('input').addEventListener('input',ev=>{
+      activePreset=null;markPreset();const val=sliderToValue(d,+ev.target.value);document.getElementById(d.id+'v').textContent=fmt(d.id,val);scheduleRun();
+    });
+  });
+}
+function getParams(){const o={};defs.forEach(d=>o[d.id]=sliderToValue(d,+document.getElementById(d.id).value));return o}
+function setParams(o){Object.entries(o).forEach(([k,v])=>{const d=defs.find(x=>x.id===k),el=document.getElementById(k);if(d&&el){el.value=valueToSlider(d,+v);document.getElementById(k+'v').textContent=fmt(k,+v)}});run()}
+function markPreset(){document.querySelectorAll('.preset').forEach(b=>b.classList.toggle('active',b.dataset.preset===activePreset))}
+function preset(x){
+  activePreset=x;markPreset();
+  if(presets[x]) setParams(presets[x]);
+}
+function resetModel(){activePreset=null;markPreset();setParams(defaults)}
+function scheduleRun(){clearTimeout(debounceTimer);document.getElementById('status').textContent='Atualizando…';debounceTimer=setTimeout(run,65)}
+
+function tridag(lower,diag,upper,rhs){
+  const n=diag.length,c=new Float64Array(n),d=new Float64Array(n),x=new Float64Array(n);
+  c[0]=upper[0]/diag[0];d[0]=rhs[0]/diag[0];
+  for(let i=1;i<n;i++){const den=diag[i]-lower[i]*c[i-1];c[i]=i<n-1?upper[i]/den:0;d[i]=(rhs[i]-lower[i]*d[i-1])/den}
+  x[n-1]=d[n-1];for(let i=n-2;i>=0;i--)x[i]=d[i]-c[i]*x[i+1];return x;
+}
+function diffusionStep(u,a,dt,N){
+  const dx=1/N,lo=new Float64Array(N),di=new Float64Array(N),up=new Float64Array(N),rhs=new Float64Array(N);
+  const drel=new Float64Array(N);
+  for(let i=0;i<N;i++) drel[i]=Math.exp(-HINDRANCE_GAMMA*Math.max(0,Math.min(1,a[i])));
+  for(let i=0;i<N;i++){
+    const x0=i/N,x1=(i+1)/N,den=x1**3-x0**3,f=3/den;let A=0,B=0,C=0,S=0;
+    if(i>0){
+      const dint=2*drel[i-1]*drel[i]/Math.max(drel[i-1]+drel[i],1e-12);
+      A=f*x0*x0*dint/dx;B-=A;
+    }
+    if(i<N-1){
+      const dint=2*drel[i]*drel[i+1]/Math.max(drel[i]+drel[i+1],1e-12);
+      C=f*x1*x1*dint/dx;B-=C;
+    }else{
+      const kb=f*x1*x1*drel[i]*2/dx;B-=kb;S+=kb;
+    }
+    lo[i]=-dt*A;di[i]=1-dt*B;up[i]=-dt*C;rhs[i]=u[i]+dt*S;
+  }
+  return tridag(lo,di,up,rhs);
+}
+function simulate(p){
+  const N=120;let u=new Float64Array(N),a=new Float64Array(N);
+  const Da=p.k*p.C*p.R*p.R/p.D,beta=p.Q/p.C,Fo=p.D*p.t/(p.R*p.R);
+  const steps=Math.max(180,Math.min(900,Math.ceil(220+75*Math.sqrt(Math.max(Fo,0))))),dt=Fo/steps;
+  const T=[],A=[],CE=[],SU=[],saveEvery=Math.max(1,Math.floor(steps/180));
+  const weights=new Float64Array(N);let ws=0;for(let i=0;i<N;i++){weights[i]=((i+1)/N)**3-(i/N)**3;ws+=weights[i]}
+  for(let s=0;s<=steps;s++){
+    if(s%saveEvery===0||s===steps){let av=0;for(let i=0;i<N;i++)av+=weights[i]*a[i];T.push(Fo*s/steps);A.push(av/ws);CE.push(a[0]);SU.push(a[N-1])}
+    if(s===steps)break;
+    u=diffusionStep(u,a,dt,N);
+    for(let i=0;i<N;i++){
+      const ui=Math.max(0,u[i]),ai=Math.min(1,Math.max(0,a[i]));
+      const target=1-(1-ai)*Math.exp(-Da*ui*dt);let delta=Math.max(0,target-ai);
+      if(beta>0)delta=Math.min(delta,ui/beta);
+      a[i]=Math.min(1,ai+delta);u[i]=Math.max(0,ui-beta*delta);
+    }
+  }
+  return{u,a,Da,Fo,T,A,CE,SU,beta,tDiff:p.R*p.R/p.D};
+}
+
+function palette(v){
+  v=Math.max(0,Math.min(1,v));
+  const s=[[0,[255,241,168]],[.25,[154,228,189]],[.50,[85,198,217]],[.75,[88,123,207]],[1,[64,50,155]]];
+  for(let i=0;i<s.length-1;i++)if(v<=s[i+1][0]){const q=(v-s[i][0])/(s[i+1][0]-s[i][0]);return s[i][1].map((z,j)=>Math.round(z+(s[i+1][1][j]-z)*q))}
+  return s[s.length-1][1];
+}
+function interp(arr,r){const N=arr.length,f=Math.max(0,Math.min(N-1,r*N-.5)),i=Math.floor(f),j=Math.min(N-1,i+1),q=f-i;return arr[i]*(1-q)+arr[j]*q}
+function rgb(c){return `rgb(${c[0]}, ${c[1]}, ${c[2]})`}
+function gradientCSSFromArray(arr){
+  const at=v=>palette(Math.max(0,Math.min(1,interp(arr,v))));
+  const c0=rgb(at(0)),c1=rgb(at(.35)),c2=rgb(at(.62)),c3=rgb(at(.82)),c4=rgb(at(1));
+  return `radial-gradient(circle at center, ${c0} 0%, ${c1} 35%, ${c2} 62%, ${c3} 82%, ${c4} 100%)`;
+}
+function contrastMapFactory(arr){
+  let amin=Infinity,amax=-Infinity;
+  for(const v of arr){if(v<amin)amin=v;if(v>amax)amax=v;}
+  const span=Math.max(amax-amin,1e-9);
+  return raw=>{
+    if(span<0.01) return 0.5;
+    const q=Math.max(0,Math.min(1,(raw-amin)/span));
+    return Math.pow(q,0.85);
+  };
+}
+function gradientCSSFromArrayContrast(arr){
+  const map=contrastMapFactory(arr);
+  const at=v=>palette(map(Math.max(0,Math.min(1,interp(arr,v)))));
+  const c0=rgb(at(0)),c1=rgb(at(.35)),c2=rgb(at(.62)),c3=rgb(at(.82)),c4=rgb(at(1));
+  return `radial-gradient(circle at center, ${c0} 0%, ${c1} 35%, ${c2} 62%, ${c3} 82%, ${c4} 100%)`;
+}
+function setColorMode(mode){
+  colorMode=mode;
+  document.getElementById('contrastBtn').classList.toggle('active',mode==='contrast');
+  document.getElementById('absoluteBtn').classList.toggle('active',mode==='absolute');
+  const badge=document.getElementById('beadModeBadge');
+  const text=document.getElementById('beadModeText');
+  const labels=document.getElementById('beadLegendLabels');
+  if(mode==='contrast'){
+    badge.textContent='contraste do perfil';
+    text.textContent='Visualização contrastada do perfil: claro = menor α dentro da bead atual; escuro = maior α dentro da bead atual.';
+    labels.innerHTML='<span>menor na bead</span><span>contraste radial</span><span>maior na bead</span>';
+  }else{
+    badge.textContent='escala fixa 0–1';
+    text.textContent='Visualização absoluta: o degradê representa α(r,t) em escala fixa de 0 a 1.';
+    labels.innerHTML='<span>0 · menor</span><span>α absoluto</span><span>1 · maior</span>';
+  }
+  if(lastResult&&lastParams){drawBead(lastResult,lastParams);}
+}
+function updatePresetPreviews(){
+  Object.entries(presets).forEach(([key,params])=>{
+    const swatch=document.querySelector(`[data-swatch="${key}"]`);
+    if(!swatch) return;
+    const sim=simulate(params);
+    swatch.style.background=gradientCSSFromArrayContrast(sim.a);
+    swatch.title=`α centro ${sim.a[0].toFixed(2)} → α externa ${sim.a[sim.a.length-1].toFixed(2)}`;
+  });
+}
+function drawBead(res,p){
+  const c=document.getElementById('bead'),g=c.getContext('2d'),W=c.width,H=c.height,cx=W/2,cy=H*.46,R=Math.min(W,H)*.39,img=g.createImageData(W,H);
+  const map=colorMode==='contrast'?contrastMapFactory(res.a):(v=>Math.max(0,Math.min(1,v)));
+  for(let yy=0;yy<H;yy++)for(let xx=0;xx<W;xx++){
+    const rr=Math.hypot(xx-cx,yy-cy)/R,ii=(yy*W+xx)*4;
+    if(rr<=1){const raw=interp(res.a,rr),cc=palette(map(raw));img.data[ii]=cc[0];img.data[ii+1]=cc[1];img.data[ii+2]=cc[2];img.data[ii+3]=255}else img.data[ii+3]=0;
+  }
+  g.clearRect(0,0,W,H);g.putImageData(img,0,0);
+  const shine=g.createRadialGradient(cx-R*.38,cy-R*.42,R*.05,cx-R*.15,cy-R*.15,R*.9);shine.addColorStop(0,'rgba(255,255,255,.16)');shine.addColorStop(.55,'rgba(255,255,255,0)');shine.addColorStop(1,'rgba(23,32,51,.05)');g.fillStyle=shine;g.beginPath();g.arc(cx,cy,R,0,Math.PI*2);g.fill();
+  g.strokeStyle='rgba(42,47,78,.66)';g.lineWidth=2.5;g.beginPath();g.arc(cx,cy,R,0,Math.PI*2);g.stroke();
+  g.fillStyle='#596273';g.font='600 13px system-ui';g.textAlign='center';g.fillText(`R = ${p.R.toFixed(2)} mm`,cx,H-15);
+}
+function axes(g,W,H,m,xTicks,yTicks,xlabel,ylabel){
+  g.fillStyle='#fff';g.fillRect(0,0,W,H);g.font='12px system-ui';
+  yTicks.forEach(y=>{const py=H-m.b-y*(H-m.t-m.b);g.strokeStyle='#edf0f5';g.lineWidth=1;g.beginPath();g.moveTo(m.l,py);g.lineTo(W-m.r,py);g.stroke();g.fillStyle='#7d8696';g.textAlign='right';g.fillText(y.toFixed(2),m.l-9,py+4)});
+  xTicks.forEach(x=>{const px=m.l+x*(W-m.l-m.r);g.strokeStyle='#f4f5f8';g.beginPath();g.moveTo(px,m.t);g.lineTo(px,H-m.b);g.stroke();g.fillStyle='#7d8696';g.textAlign='center';g.fillText(x.toFixed(2),px,H-m.b+20)});
+  g.strokeStyle='#cfd5df';g.beginPath();g.moveTo(m.l,m.t);g.lineTo(m.l,H-m.b);g.lineTo(W-m.r,H-m.b);g.stroke();
+  g.fillStyle='#5f697d';g.font='600 12px system-ui';g.textAlign='center';g.fillText(xlabel,(m.l+W-m.r)/2,H-14);g.save();g.translate(18,(m.t+H-m.b)/2);g.rotate(-Math.PI/2);g.fillText(ylabel,0,0);g.restore();
+}
+function drawProfile(res){
+  const c=document.getElementById('profile'),g=c.getContext('2d'),W=c.width,H=c.height,m={l:62,r:22,t:25,b:62};g.clearRect(0,0,W,H);
+  axes(g,W,H,m,[0,.25,.5,.75,1],[0,.25,.5,.75,1],'Posição radial normalizada r/R','Valor normalizado');
+  const N=res.a.length,x=[0,...Array.from({length:N},(_,i)=>(i+.5)/N),1];
+  const alpha=[res.a[0],...Array.from(res.a),res.a[N-1]];
+  const ion=[res.u[0],...Array.from(res.u),1];
+  const px=v=>m.l+v*(W-m.l-m.r),py=v=>H-m.b-Math.max(0,Math.min(1,v))*(H-m.t-m.b);
+
+  const fill=g.createLinearGradient(0,m.t,0,H-m.b);fill.addColorStop(0,'rgba(98,84,217,.18)');fill.addColorStop(1,'rgba(98,84,217,.02)');
+  g.beginPath();g.moveTo(px(x[0]),py(0));x.forEach((v,i)=>g.lineTo(px(v),py(alpha[i])));g.lineTo(px(1),py(0));g.closePath();g.fillStyle=fill;g.fill();
+
+  g.strokeStyle='#6254d9';g.lineWidth=3;g.lineJoin='round';g.lineCap='round';g.beginPath();x.forEach((v,i)=>i?g.lineTo(px(v),py(alpha[i])):g.moveTo(px(v),py(alpha[i])));g.stroke();
+  g.strokeStyle='#0f9b79';g.lineWidth=2.5;g.setLineDash([7,6]);g.beginPath();x.forEach((v,i)=>i?g.lineTo(px(v),py(ion[i])):g.moveTo(px(v),py(ion[i])));g.stroke();g.setLineDash([]);
+
+  g.fillStyle='#5f697d';g.font='700 11px system-ui';g.textAlign='left';g.fillText('CENTRO',m.l,m.t-8);g.textAlign='right';g.fillText('SUPERFÍCIE',W-m.r,m.t-8);
+}
+function drawTime(res,p){
+  const c=document.getElementById('time'),g=c.getContext('2d'),W=c.width,H=c.height,m={l:65,r:24,t:20,b:56};g.clearRect(0,0,W,H);g.fillStyle='#fff';g.fillRect(0,0,W,H);
+  const xt=[0,.25,.5,.75,1],yt=[0,.25,.5,.75,1];
+  yt.forEach(y=>{const py=H-m.b-y*(H-m.t-m.b);g.strokeStyle='#edf0f5';g.beginPath();g.moveTo(m.l,py);g.lineTo(W-m.r,py);g.stroke();g.fillStyle='#7d8696';g.font='12px system-ui';g.textAlign='right';g.fillText(y.toFixed(2),m.l-9,py+4)});
+  xt.forEach(q=>{const px=m.l+q*(W-m.l-m.r);g.strokeStyle='#f4f5f8';g.beginPath();g.moveTo(px,m.t);g.lineTo(px,H-m.b);g.stroke();g.fillStyle='#7d8696';g.textAlign='center';g.fillText(Math.round(q*p.t),px,H-m.b+20)});
+  g.strokeStyle='#cfd5df';g.beginPath();g.moveTo(m.l,m.t);g.lineTo(m.l,H-m.b);g.lineTo(W-m.r,H-m.b);g.stroke();
+  g.fillStyle='#5f697d';g.font='600 12px system-ui';g.textAlign='center';g.fillText('Tempo [min]',(m.l+W-m.r)/2,H-13);g.save();g.translate(18,(m.t+H-m.b)/2);g.rotate(-Math.PI/2);g.fillText('Grau de reticulação α',0,0);g.restore();
+  const tt=res.T.map(q=>q*p.R*p.R/p.D),series=[{y:res.A,c:'#6254d9'},{y:res.CE,c:'#0f9b79'},{y:res.SU,c:'#d85882'}];
+  series.forEach(s=>{g.strokeStyle=s.c;g.lineWidth=2.7;g.lineJoin='round';g.lineCap='round';g.beginPath();tt.forEach((x,i)=>{const px=m.l+(x/Math.max(p.t,1e-12))*(W-m.l-m.r),py=H-m.b-Math.max(0,Math.min(1,s.y[i]))*(H-m.t-m.b);i?g.lineTo(px,py):g.moveTo(px,py)});g.stroke()});
+}
+function profileExplanation(r,p,center,surf,H,delta){
+  let shape;
+  if(delta<.025)shape='<strong>Perfil quase uniforme:</strong> o centro já acompanha a camada externa.';
+  else if(delta<.12)shape='<strong>Gradiente suave:</strong> α cresce do centro para a superfície, mas a diferença radial é moderada.';
+  else shape='<strong>Gradiente acentuado:</strong> a periferia está mais reticulada que o centro, padrão esperado enquanto a frente externa ainda avança.';
+  let transport=r.Fo<.15?'O processo ainda está no início da escala difusiva.':r.Fo<1?'A difusão ainda está redistribuindo Ba²⁺ em direção ao centro.':'O tempo já é comparável ou superior à escala R²/D, favorecendo homogeneização.';
+  return `${shape} ${transport} <strong>Leitura rápida:</strong> a curva roxa mostra α(r), isto é, o grau de reticulação do centro à periferia. H = ${H.toFixed(3)} e Δα = ${delta.toFixed(3)}.`;
+}
+function regimeExplanation(r,p,H,delta){
+  let competition;
+  if(r.Da<.1)competition='a difusão é muito rápida em relação à reação';
+  else if(r.Da<=10)competition='difusão e reação competem em escalas comparáveis';
+  else competition='a reação é rápida em relação ao transporte e pode acentuar uma frente externa transitória';
+  const tag=activePreset?`Padrão <strong>${document.querySelector(`[data-preset="${activePreset}"] span`).textContent}</strong>: `:'Ajuste manual: ';
+  return `${tag}${competition}. A visualização pode ser alternada entre <strong>contraste do perfil</strong> (para enxergar melhor o gradiente interno) e <strong>α absoluto</strong> em escala fixa 0–1. As curvas e métricas ao lado preservam os valores calculados do modelo.`;
+}
+function run(){
+  const p=getParams(),r=simulate(p);lastResult=r;lastParams=p;
+  const avg=r.A[r.A.length-1],center=r.CE[r.CE.length-1],surf=r.SU[r.SU.length-1],delta=Math.max(0,surf-center),H=surf>1e-9?center/surf:1;
+  document.getElementById('Da').textContent=r.Da.toFixed(3);document.getElementById('Fo').textContent=r.Fo.toFixed(3);document.getElementById('avg').textContent=avg.toFixed(3);document.getElementById('Dmetric').textContent=delta.toFixed(3);
+  document.getElementById('regimeText').innerHTML=regimeExplanation(r,p,H,delta);
+  drawBead(r,p);drawProfile(r);drawTime(r,p);
+  document.getElementById('profileNote').innerHTML=profileExplanation(r,p,center,surf,H,delta);
+  let status=`<strong>α centro ${center.toFixed(3)}</strong> · α externa ${surf.toFixed(3)} · Δα ${delta.toFixed(3)}.`;
+  if(delta<.025)status+=' Gradiente visual discreto: perfil quase homogêneo.';else if(delta<.12)status+=' Degradê radial suave.';else status+=' Degradê radial pronunciado.';
+  document.getElementById('status').innerHTML=status;
+  document.querySelectorAll('.metric').forEach(el=>{el.classList.remove('pulse');void el.offsetWidth;el.classList.add('pulse')});
+}
+
+buildControls();updatePresetPreviews();setColorMode(colorMode);run();
+</script>
+</body>
+</html>
